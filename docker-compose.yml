@@ -31,3 +31,21 @@ services:
     volumes:
       - /app/node_modules
       - ./examples/traditional-n-layer-approach:/app
+
+  clean-architecture:
+    build:
+      context: ./examples/clean-architecture-approach
+      dockerfile: Dockerfile
+    ports:
+      - 3001:3000
+    depends_on:
+      - database
+    environment:
+      - PGHOST=database
+      - PGUSER=postgres
+      - PGPASSWORD=postgres
+      - PGDATABASE=postgres
+      - PGPORT=5432
+    volumes:
+      - /app/node_modules
+      - ./examples/traditional-n-layer-approach:/app
