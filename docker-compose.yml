@@ -1,0 +1,33 @@
+services:
+  schema:
+    image: flyway/flyway
+    command: -url=jdbc:postgresql://database/ -schemas=public -user=postgres -password=postgres -connectRetries=60 migrate
+    volumes:
+      - ./schema:/flyway/sql
+    depends_on:
+      - database
+
+  database:
+    image: postgres:14.5
+    environment:
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - 5432:5432
+
+  traditional:
+    build:
+      context: ./examples/traditional-n-layer-approach
+      dockerfile: Dockerfile
+    ports:
+      - 3000:3000
+    depends_on:
+      - database
+    environment:
+      - PGHOST=database
+      - PGUSER=postgres
+      - PGPASSWORD=postgres
+      - PGDATABASE=postgres
+      - PGPORT=5432
+    volumes:
+      - /app/node_modules
+      - ./examples/traditional-n-layer-approach:/app
