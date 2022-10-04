@@ -1,10 +1,10 @@
 import express from "express";
 import bodyParser from "body-parser";
-import createTodoRouter from "./todos/todoRouter";
-import createTodoService from "./todos/todoService";
-import createTodoRepo from "./todos/todoRepo";
 import postgres from "postgres";
 import createUsageService from "./usage/usageService";
+import { container } from "tsyringe";
+import TodoRouter from "./todos/todoRouter";
+import Database from "./data/database";
 
 const app = express();
 
@@ -23,23 +23,21 @@ app.use(
   }
 );
 
+container.registerInstance(
+  Database,
+  new Database({
+    host: process.env.PGHOST ?? "localhost",
+    port: parseInt(process.env.PGPORT || "5432"),
+    user: process.env.PGUSER ?? "postgres",
+    password: process.env.PGPASSWORD ?? "postgres",
+    database: process.env.PGDATABASE ?? "postgres",
+  })
+);
+
 app.use(
   "/api/todo",
   // Build the dependency tree
-  createTodoRouter(
-    createTodoService(
-      createTodoRepo(
-        postgres({
-          host: process.env.PGHOST ?? "localhost",
-          port: parseInt(process.env.PGPORT || "5432"),
-          user: process.env.PGUSER ?? "postgres",
-          password: process.env.PGPASSWORD ?? "postgres",
-          database: process.env.PGDATABASE ?? "postgres",
-        })
-      ),
-      createUsageService()
-    )
-  )
+  container.resolve(TodoRouter).getRouter()
 );
 
 export default app;
