@@ -4,7 +4,7 @@ import postgres from "postgres";
 import createUsageService from "./usage/usageService";
 import { container } from "tsyringe";
 import TodoRouter from "./todos/todoRouter";
-import Database from "./data/database";
+import Database, { DatabaseOptions } from "./data/database";
 
 const app = express();
 
@@ -12,20 +12,18 @@ app.use(bodyParser.json());
 /**
  * Imagine this was a proper auth
  */
-app.use(
-  (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    if (req.headers["x-user-id"]) {
-      req.userId = req.headers["x-user-id"] as string;
-    } else {
-      req.userId = "1";
-    }
-    next();
+app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (req.headers["x-user-id"]) {
+    req.userId = req.headers["x-user-id"] as string;
+  } else {
+    req.userId = "1";
   }
-);
+  next();
+});
 
 container.registerInstance(
-  Database,
-  new Database({
+  DatabaseOptions,
+  new DatabaseOptions({
     host: process.env.PGHOST ?? "localhost",
     port: parseInt(process.env.PGPORT || "5432"),
     user: process.env.PGUSER ?? "postgres",

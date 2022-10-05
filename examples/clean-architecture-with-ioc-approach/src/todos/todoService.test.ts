@@ -1,3 +1,6 @@
+import "reflect-metadata";
+import { container } from "tsyringe";
+import UsageService from "../usage/usageService";
 import Todo, { CreateTodoParams } from "./todo";
 import TodoRepo from "./todoRepo";
 import TodoService from "./todoService";
@@ -17,17 +20,28 @@ const createMockedUsageService = () => {
   return mockedUsageService;
 };
 
-const mockTodoRepo = createMockedTodoRepo();
-const mockedUsageService = createMockedUsageService();
+let mockTodoRepo: TodoRepo;
+let mockedUsageService: UsageService;
 
 describe("todoService", () => {
+  beforeEach(() => {
+    container.clearInstances();
+
+    mockTodoRepo = createMockedTodoRepo();
+    mockedUsageService = createMockedUsageService();
+
+    container.registerInstance(TodoRepo, mockTodoRepo);
+    container.registerInstance(UsageService, mockedUsageService);
+  });
+
   it("should save the created todo", async () => {
     const userId = "user1";
     const todo = {
       text: "Improve the architecture",
       completed: false,
     };
-    const todoService = new TodoService(mockTodoRepo, mockedUsageService);
+    console.log(container);
+    const todoService = container.resolve(TodoService);
 
     const createdTodo = await todoService.createTodo(userId, todo);
 
@@ -41,7 +55,7 @@ describe("todoService", () => {
       completed: false,
     };
 
-    const todoService = new TodoService(mockTodoRepo, mockedUsageService);
+    const todoService = container.resolve(TodoService);
 
     const createdTodo = await todoService.createTodo(userId, todo);
 
